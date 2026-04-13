@@ -10,6 +10,14 @@ import html2pdf from 'html2pdf.js';
 function App() {
   const [invoiceNumber, setInvoiceNumber] = useLocalStorage('lastInvoiceNumber', 26001);
   const [companyDetails, setCompanyDetails] = useLocalStorage('companyDetails', initialCompanyDetails);
+
+  // Migration: Ensure the default logo is applied if the user has no logo or a broken path
+  useEffect(() => {
+    const currentLogo = companyDetails.logo;
+    if (!currentLogo || (typeof currentLogo === 'string' && currentLogo.includes('/assets/logo.jpg'))) {
+      setCompanyDetails(prev => ({ ...prev, logo: initialCompanyDetails.logo }));
+    }
+  }, []);
   const [clientDetails, setClientDetails] = useLocalStorage('clientDetails', initialClientDetails);
   const [invoiceDetails, setInvoiceDetails] = useLocalStorage('invoiceDetails', {
     ...initialInvoiceDetails,

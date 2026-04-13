@@ -1,8 +1,7 @@
 import { format } from 'date-fns';
-import defaultLogo from '../assets/logo.jpg';
 
 export const initialCompanyDetails = {
-  logo: defaultLogo,
+  logo: '/logo.jpg',
   companyName: 'JOD TECH',
   yourName: '',
   gstinToggle: true,
