@@ -1,7 +1,8 @@
 import { format } from 'date-fns';
+import defaultLogo from '../assets/logo.jpg';
 
 export const initialCompanyDetails = {
-  logo: '',
+  logo: defaultLogo,
   companyName: 'JOD TECH',
   yourName: '',
   gstinToggle: true,
@@ -33,11 +34,16 @@ export const initialInvoiceDetails = {
   placeOfSupply: 'Tamil Nadu',
 };
 
-export const defaultTerms = `1. 50% advance payment required.
-2. Remaining payment before delivery.
-3. Domain/hosting yearly renewal.
-4. Advance payment is non-refundable.
-5. Final files will be delivered after full payment.`;
+export const defaultNotes = `It was a pleasure working with you. We appreciate the opportunity to support your digital growth. Our team is committed to delivering high-quality solutions and reliable service. Thank you for choosing our IT services.`;
+
+export const defaultTerms = `1. 50% advance payment is required to start the project. Remaining payment must be completed before final delivery.
+2. Prices include only the services mentioned in the proposal. Additional work will be charged separately.
+3. Domain and hosting are renewable yearly and must be paid before expiry.
+4. Project delivery time depends on receiving required content from the client.
+5. Digital marketing services are billed monthly as per the selected package.
+6. Advance payments are non-refundable once the project has started.
+7. Basic support is included for a limited period after delivery.
+8. Final files and website access will be provided after full payment.`;
 
 export const initialItem = {
   id: '1',

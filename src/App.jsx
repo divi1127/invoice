@@ -3,7 +3,7 @@ import { Download, Printer, PlusCircle, FileText, Eye } from 'lucide-react';
 import useLocalStorage from './hooks/useLocalStorage';
 import InvoiceForm from './components/InvoiceForm';
 import InvoicePreview from './components/InvoicePreview';
-import { initialCompanyDetails, initialClientDetails, initialInvoiceDetails, defaultTerms, initialItem } from './utils/initialData';
+import { initialCompanyDetails, initialClientDetails, initialInvoiceDetails, defaultNotes, defaultTerms, initialItem } from './utils/initialData';
 import { Toaster, toast } from 'react-hot-toast';
 import html2pdf from 'html2pdf.js';
 
@@ -16,7 +16,7 @@ function App() {
     invoiceNo: `JODAP-${invoiceNumber}`
   });
   const [items, setItems] = useLocalStorage('invoiceItems', [initialItem]);
-  const [notes, setNotes] = useLocalStorage('invoiceNotes', '');
+  const [notes, setNotes] = useLocalStorage('invoiceNotes', defaultNotes);
   const [terms, setTerms] = useLocalStorage('invoiceTerms', defaultTerms);
   const [quotationNote, setQuotationNote] = useLocalStorage('quotationNote', '');
   const [mobileTab, setMobileTab] = useState('form'); // 'form' | 'preview'
@@ -86,7 +86,8 @@ function App() {
     });
     setClientDetails(initialClientDetails);
     setItems([initialItem]);
-    setNotes('');
+    setNotes(defaultNotes);
+    setTerms(defaultTerms);
     setQuotationNote('');
     toast.success('New invoice started!');
   };
