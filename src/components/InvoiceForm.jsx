@@ -3,8 +3,8 @@ import { Plus, Trash2, Upload, GripVertical } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function InvoiceForm({ state, setState }) {
-  const { companyDetails, clientDetails, invoiceDetails, items, notes, terms } = state;
-  const { setCompanyDetails, setClientDetails, setInvoiceDetails, setItems, setNotes, setTerms } = setState;
+  const { companyDetails, clientDetails, invoiceDetails, items, notes, terms, quotationNote } = state;
+  const { setCompanyDetails, setClientDetails, setInvoiceDetails, setItems, setNotes, setTerms, setQuotationNote } = setState;
 
   const handleCompanyChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -89,31 +89,40 @@ export default function InvoiceForm({ state, setState }) {
   };
 
   const isGST = invoiceDetails.invoiceType === 'GST';
+  const invoiceType = invoiceDetails.invoiceType || 'GST';
+  const isQuotation = invoiceType === 'Quotation';
+  const showTaxColumns = isGST || isQuotation;
 
   return (
     <div className="space-y-8 pb-10">
       
       {/* Invoice Type & Details */}
-      <section className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
+      <section className="bg-white p-4 sm:p-5 rounded-xl border border-gray-100 shadow-sm">
+        <div className="flex flex-wrap gap-3 items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-800">Invoice Settings</h2>
-          <div className="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg">
+          <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg">
             <button
               onClick={() => setInvoiceDetails({...invoiceDetails, invoiceType: 'GST'})}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${isGST ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${invoiceType === 'GST' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              GST Invoice
+              GST
             </button>
             <button
               onClick={() => setInvoiceDetails({...invoiceDetails, invoiceType: 'Non-GST'})}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${!isGST ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${invoiceType === 'Non-GST' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              Non-GST Invoice
+              Non-GST
+            </button>
+            <button
+              onClick={() => setInvoiceDetails({...invoiceDetails, invoiceType: 'Quotation'})}
+              className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${invoiceType === 'Quotation' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Quotation
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Invoice Number</label>
             <input type="text" name="invoiceNo" value={invoiceDetails.invoiceNo} onChange={handleInvoiceChange} className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary p-2 border" />
@@ -133,9 +142,9 @@ export default function InvoiceForm({ state, setState }) {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Company Details */}
-        <section className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        {/* Your Details */}
+        <section className="bg-white p-4 sm:p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
           <h2 className="text-lg font-bold text-gray-800 flex items-center justify-between">
             Your Details
             <label className="cursor-pointer flex items-center space-x-2 text-sm text-primary hover:text-green-700 font-medium">
@@ -173,8 +182,44 @@ export default function InvoiceForm({ state, setState }) {
           </div>
         </section>
 
+        {/* Payment Details */}
+        <section className="bg-white p-4 sm:p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <h2 className="text-lg font-bold text-gray-800 flex items-center justify-between">
+            Payment Details
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox" 
+                name="paymentToggle" 
+                checked={companyDetails.paymentToggle} 
+                onChange={handleCompanyChange} 
+                className="rounded text-primary focus:ring-primary h-4 w-4" 
+                id="paymentToggle" 
+              />
+              <label htmlFor="paymentToggle" className="text-sm font-medium text-gray-600">Active</label>
+            </div>
+          </h2>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Bank Name</label>
+              <input type="text" name="bankName" placeholder="Enter Bank Name" value={companyDetails.bankName || ''} onChange={handleCompanyChange} className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition-all" />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Account Number</label>
+                <input type="text" name="accountNo" placeholder="Account No" value={companyDetails.accountNo || ''} onChange={handleCompanyChange} className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition-all font-mono" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">IFSC Code</label>
+                <input type="text" name="ifscCode" placeholder="IFSC" value={companyDetails.ifscCode || ''} onChange={handleCompanyChange} className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition-all font-mono uppercase" />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Client Details */}
-        <section className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
+        <section className="bg-white p-4 sm:p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
           <h2 className="text-lg font-bold text-gray-800">Bill To</h2>
           
           <div className="space-y-3">
@@ -197,26 +242,26 @@ export default function InvoiceForm({ state, setState }) {
       </div>
 
       {/* Line Items */}
-      <section className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+      <section className="bg-white p-4 sm:p-5 rounded-xl border border-gray-100 shadow-sm">
         <h2 className="text-lg font-bold text-gray-800 mb-4">Line Items</h2>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap mb-4">
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="min-w-full text-left text-sm whitespace-nowrap mb-4">
             <thead className="bg-gray-50 text-gray-500 uppercase text-xs font-semibold rounded-t-xl">
               <tr>
-                <th className="p-3 w-8"></th>
-                <th className="p-3">Item Description</th>
-                <th className="p-3 w-16">Qty</th>
-                <th className="p-3 w-24">Rate</th>
-                {isGST && (
+                <th className="p-2 sm:p-3 w-6 sm:w-8"></th>
+                <th className="p-2 sm:p-3">Description</th>
+                <th className="p-2 sm:p-3 w-14 sm:w-16">Qty</th>
+                <th className="p-2 sm:p-3 w-20 sm:w-24">Rate</th>
+                {showTaxColumns && (
                   <>
-                    <th className="p-3 w-16">SGST%</th>
-                    <th className="p-3 w-16">CGST%</th>
-                    <th className="p-3 w-16">Cess%</th>
+                    <th className="p-2 sm:p-3 w-14 sm:w-16">SGST%</th>
+                    <th className="p-2 sm:p-3 w-14 sm:w-16">CGST%</th>
+                    <th className="p-2 sm:p-3 w-14 sm:w-16">Cess%</th>
                   </>
                 )}
-                <th className="p-3 w-24 text-right">Amount</th>
-                <th className="p-3 w-10"></th>
+                <th className="p-2 sm:p-3 w-20 sm:w-24 text-right">Amount</th>
+                <th className="p-2 sm:p-3 w-8 sm:w-10"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -248,7 +293,7 @@ export default function InvoiceForm({ state, setState }) {
                   <td className="p-2">
                     <input type="number" min="0" value={item.rate} onChange={(e) => handleItemChange(item.id, 'rate', e.target.value)} className="w-full bg-transparent border-b border-transparent focus:border-primary focus:ring-0 px-1 py-1 text-right" />
                   </td>
-                  {isGST && (
+                  {showTaxColumns && (
                     <>
                       <td className="p-2">
                         <input type="number" min="0" max="100" value={item.sgst} onChange={(e) => handleItemChange(item.id, 'sgst', e.target.value)} className="w-full bg-transparent border-b border-transparent focus:border-primary focus:ring-0 px-1 py-1 text-center" />
@@ -283,8 +328,8 @@ export default function InvoiceForm({ state, setState }) {
       </section>
 
       {/* Notes & Terms */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <section className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <section className="bg-white p-4 sm:p-5 rounded-xl border border-gray-100 shadow-sm">
           <h2 className="text-lg font-bold text-gray-800 mb-3">Notes</h2>
           <textarea 
             placeholder="Any additional notes or bank details..." 
@@ -294,7 +339,7 @@ export default function InvoiceForm({ state, setState }) {
           />
         </section>
 
-        <section className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+        <section className="bg-white p-4 sm:p-5 rounded-xl border border-gray-100 shadow-sm">
           <h2 className="text-lg font-bold text-gray-800 mb-3">Terms & Conditions</h2>
           <textarea 
             value={terms} 
@@ -303,6 +348,22 @@ export default function InvoiceForm({ state, setState }) {
           />
         </section>
       </div>
+
+      {/* Quotation Note (only for Quotation type) */}
+      {isQuotation && (
+        <section className="bg-white p-4 sm:p-5 rounded-xl border border-gray-100 shadow-sm">
+          <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <span className="inline-block w-1.5 h-5 bg-primary rounded-full"></span>
+            Quotation Note
+          </h2>
+          <textarea 
+            placeholder="Add a special note for this quotation (e.g. validity period, special conditions)..." 
+            value={quotationNote} 
+            onChange={(e) => setQuotationNote(e.target.value)} 
+            className="w-full text-sm border border-gray-300 rounded-md p-3 h-28 resize-none focus:ring-primary focus:border-primary" 
+          />
+        </section>
+      )}
 
     </div>
   );

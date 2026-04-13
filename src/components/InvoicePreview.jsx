@@ -2,8 +2,11 @@ import React from 'react';
 import { format } from 'date-fns';
 
 export default function InvoicePreview({ state }) {
-  const { companyDetails, clientDetails, invoiceDetails, items, notes, terms } = state;
-  const isGST = invoiceDetails.invoiceType === 'GST';
+  const { companyDetails, clientDetails, invoiceDetails, items, notes, terms, quotationNote } = state;
+  const invoiceType = invoiceDetails.invoiceType || 'GST';
+  const isGST = invoiceType === 'GST';
+  const isQuotation = invoiceType === 'Quotation';
+  const showTaxColumns = isGST || isQuotation;
 
   // Helper to normalize items against user input errors
   const normalizedItems = items.map(item => {
@@ -28,20 +31,24 @@ export default function InvoicePreview({ state }) {
   let totalCGST = 0;
   let totalCess = 0;
 
-  if (isGST) {
+  if (showTaxColumns) {
     totalSGST = normalizedItems.reduce((acc, item) => acc + ((Number(item.sgst) || 0) / 100) * item.itemAmt, 0);
     totalCGST = normalizedItems.reduce((acc, item) => acc + ((Number(item.cgst) || 0) / 100) * item.itemAmt, 0);
     totalCess = normalizedItems.reduce((acc, item) => acc + ((Number(item.cess) || 0) / 100) * item.itemAmt, 0);
   }
 
   const grandTotal = subtotal + totalSGST + totalCGST + totalCess;
-  const isCompact = normalizedItems.length > 12;
+  
+  const itemCount = normalizedItems.length;
+  const isCompact = itemCount > 8;
+  const isSuperCompact = itemCount > 12;
+  const isExtremeCompact = itemCount > 14;
 
   return (
-    <div className="flex flex-col relative print:block">
+    <div className="flex flex-col relative print:block w-full">
 
       {/* PAGE 1: Invoice Details & Items */}
-      <div className="bg-white mx-auto relative print-page flex flex-col shadow-lg print:shadow-none print:mb-0" style={{ width: '210mm', minHeight: '295mm', padding: '10mm 15mm' }}>
+      <div className="bg-white mx-auto relative print-page flex flex-col shadow-lg print:shadow-none print:mb-0" style={{ width: '210mm', height: '296mm', padding: '8mm 15mm 25mm 15mm' }}>
 
         {/* Decorative Top Wave */}
         <div className="absolute top-0 left-0 right-0 w-full overflow-hidden leading-none z-0">
@@ -51,7 +58,7 @@ export default function InvoicePreview({ state }) {
         </div>
         <div className="absolute top-0 bottom-0 left-0 w-2 bg-primary" />
         <div className="absolute top-0 bottom-0 right-0 w-2 bg-primary" />
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary" />
+        <div className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
 
         {/* Watermark Logo */}
         {companyDetails.logo && (
@@ -64,54 +71,58 @@ export default function InvoicePreview({ state }) {
           </div>
         )}
 
-        <div className="pl-4 pr-4 pt-1">
+        <div className={`px-4 ${isExtremeCompact ? 'pt-0' : 'pt-1'}`}>
 
           {/* Header */}
-          <div className="flex justify-between items-start mb-4">
+          <div className={`flex justify-between items-start ${isExtremeCompact ? 'mb-1' : isSuperCompact ? 'mb-2' : 'mb-4'}`}>
             <div className="max-w-[50%] flex flex-col items-start">
               {companyDetails.logo ? (
                 <img
                   src={companyDetails.logo}
                   alt="Company Logo"
-                  className={`${isCompact ? 'h-10' : 'h-16'} object-contain mb-2 -ml-2`}
+                  className={`${isExtremeCompact ? 'h-8' : isSuperCompact ? 'h-10' : 'h-16'} object-contain mb-1 -ml-2`}
                 />
               ) : (
-                <div className={`${isCompact ? 'text-xl' : 'text-2xl'} font-extrabold text-primary mb-2 tracking-tighter`}>
+                <div className={`${isSuperCompact ? 'text-lg' : isCompact ? 'text-xl' : 'text-2xl'} font-extrabold text-primary mb-1 tracking-tighter`}>
                   {companyDetails.companyName || 'COMPANY NAME'}
                 </div>
               )}
 
-              <div className={`text-gray-700 ${isCompact ? 'text-xs' : 'text-sm'} leading-relaxed space-y-0.5`}>
-                {companyDetails.companyName && !companyDetails.logo && <div className={`font-bold ${isCompact ? 'text-sm' : 'text-base'}`}>{companyDetails.companyName}</div>}
+              <div className={`text-gray-700 ${isExtremeCompact ? 'text-[9px]' : isSuperCompact ? 'text-xs' : 'text-sm'} leading-tight space-y-0`}>
+                {companyDetails.companyName && !companyDetails.logo && <div className={`font-bold ${isSuperCompact ? 'text-xs' : isCompact ? 'text-sm' : 'text-base'}`}>{companyDetails.companyName}</div>}
                 {companyDetails.yourName && <div className="font-bold text-gray-900">{companyDetails.yourName}</div>}
                 <div className="whitespace-pre-wrap">{companyDetails.address}</div>
                 <div>{companyDetails.city}</div>
                 <div>{[companyDetails.state, companyDetails.country].filter(Boolean).join(', ')}</div>
                 {companyDetails.phone && <div>Phone: <span className="font-bold text-gray-900">{companyDetails.phone}</span></div>}
                 {companyDetails.gstinToggle && companyDetails.gstin && (
-                  <div className="font-bold text-gray-800 mt-1">GSTIN: {companyDetails.gstin}</div>
+                  <div className="font-bold text-gray-800 mt-0.5">GSTIN: {companyDetails.gstin}</div>
                 )}
               </div>
             </div>
 
             <div className="text-right">
-              <h1 className="text-3xl font-bold text-gray-800 uppercase tracking-widest mb-2">
-                {isGST ? 'TAX INVOICE' : 'INVOICE'}
+              <h1 className={`${isSuperCompact ? 'text-xl' : 'text-3xl'} font-bold text-gray-800 uppercase tracking-widest mb-1`}>
+                {isGST ? 'TAX INVOICE' : isQuotation ? 'QUOTATION' : 'INVOICE'}
               </h1>
 
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700">
-                <span className="font-semibold text-gray-500">Invoice No:</span>
+              <div className={`grid grid-cols-2 gap-x-4 gap-y-1 ${isSuperCompact ? 'text-[10px]' : 'text-sm'} text-gray-700`}>
+                <span className="font-semibold text-gray-500">{isQuotation ? 'Quotation No:' : 'Invoice No:'}</span>
                 <span className="font-bold text-gray-900">{invoiceDetails.invoiceNo || '-'}</span>
 
-                <span className="font-semibold text-gray-500">Invoice Date:</span>
+                <span className="font-semibold text-gray-500">{isQuotation ? 'Quotation Date:' : 'Invoice Date:'}</span>
                 <span className="font-semibold text-gray-900">
                   {invoiceDetails.invoiceDate ? format(new Date(invoiceDetails.invoiceDate), 'dd MMM yyyy') : '-'}
                 </span>
 
-                <span className="font-semibold text-gray-500">Due Date:</span>
-                <span className="font-semibold text-gray-900">
-                  {invoiceDetails.dueDate ? format(new Date(invoiceDetails.dueDate), 'dd MMM yyyy') : '-'}
-                </span>
+                {!isQuotation && (
+                  <>
+                    <span className="font-semibold text-gray-500">Due Date:</span>
+                    <span className="font-semibold text-gray-900">
+                      {invoiceDetails.dueDate ? format(new Date(invoiceDetails.dueDate), 'dd MMM yyyy') : '-'}
+                    </span>
+                  </>
+                )}
 
                 {isGST && invoiceDetails.placeOfSupply && (
                   <>
@@ -124,26 +135,26 @@ export default function InvoicePreview({ state }) {
           </div>
 
           {/* Client Details Section */}
-          <div className={`border-t border-gray-200 border-b ${isCompact ? 'py-1 mb-1' : 'py-2 mb-2'} grid grid-cols-2`}>
+          <div className={`border-t border-gray-200 border-b ${isExtremeCompact ? 'py-0.5 mb-0.5' : isSuperCompact ? 'py-1 mb-1' : 'py-2 mb-2'} grid grid-cols-2`}>
             <div>
-              <h3 className={`${isCompact ? 'text-[8px]' : 'text-[10px]'} font-bold text-gray-400 uppercase tracking-widest mb-1`}>Billed To:</h3>
-              <div className={`${isCompact ? 'text-sm' : 'text-base'} text-gray-900 leading-tight font-bold mb-0.5`}>
+              <h3 className={`${isSuperCompact ? 'text-[7px]' : 'text-[10px]'} font-bold text-gray-400 uppercase tracking-widest mb-0.5`}>Billed To:</h3>
+              <div className={`${isSuperCompact ? 'text-xs' : 'text-base'} text-gray-900 leading-tight font-bold mb-0.5`}>
                 {clientDetails.clientCompanyName || 'Client Name'}
               </div>
               {clientDetails.address && (
-                <div className={`${isCompact ? 'text-[11px]' : 'text-sm'} text-gray-600 whitespace-pre-wrap`}>
+                <div className={`${isSuperCompact ? 'text-[10px]' : 'text-sm'} text-gray-600 whitespace-pre-wrap leading-tight`}>
                   {clientDetails.address}
                 </div>
               )}
-              <div className={`${isCompact ? 'text-[11px]' : 'text-sm'} text-gray-600`}>
+              <div className={`${isSuperCompact ? 'text-[10px]' : 'text-sm'} text-gray-600 leading-tight`}>
                 <div>{clientDetails.city}</div>
                 <div>{clientDetails.state}</div>
               </div>
               {isGST && clientDetails.gstin && (
-                <div className={`${isCompact ? 'text-[11px]' : 'text-sm'} font-bold text-gray-800 mt-1`}>GSTIN: {clientDetails.gstin}</div>
+                <div className={`${isSuperCompact ? 'text-[10px]' : 'text-sm'} font-bold text-gray-800 mt-0.5`}>GSTIN: {clientDetails.gstin}</div>
               )}
               {clientDetails.phone && (
-                <div className={`${isCompact ? 'text-[11px]' : 'text-sm'} text-gray-600 mt-0.5`}>
+                <div className={`${isSuperCompact ? 'text-[10px]' : 'text-sm'} text-gray-600 mt-0.5`}>
                   Phone: <span className="font-bold text-gray-900">{clientDetails.phone}</span>
                 </div>
               )}
@@ -151,29 +162,29 @@ export default function InvoicePreview({ state }) {
           </div>
 
           {/* Table items */}
-          <div className={`${isCompact ? 'mb-0.5' : 'mb-1'} flex-grow`}>
-            <table className={`w-full ${isCompact ? 'text-[11px]' : 'text-sm'} text-left`}>
+          <div className={`${isExtremeCompact ? 'mb-0.5' : isSuperCompact ? 'mb-1' : 'mb-2'} flex-grow`}>
+            <table className={`w-full ${isExtremeCompact ? 'text-[9px]' : isSuperCompact ? 'text-[10px]' : isCompact ? 'text-[11px]' : 'text-sm'} text-left`}>
               <thead>
                 <tr className="bg-primary text-white">
-                  <th className={`${isCompact ? 'py-1.5' : 'py-2'} px-3 font-semibold w-12 border-r border-green-700`}>S.NO</th>
-                  <th className={`${isCompact ? 'py-1.5' : 'py-2'} px-3 font-semibold border-r border-green-700`}>Services</th>
-                  <th className={`${isCompact ? 'py-1.5' : 'py-2'} px-3 font-semibold text-center w-16 border-r border-green-700`}>Qty</th>
-                  <th className={`${isCompact ? 'py-1.5' : 'py-2'} px-3 font-semibold text-right w-24 border-r border-green-700`}>Rate</th>
-                  {isGST && <th className={`${isCompact ? 'py-1.5' : 'py-2'} px-3 font-semibold text-right w-20 border-r border-green-700`}>Tax</th>}
-                  <th className={`${isCompact ? 'py-1.5' : 'py-2'} px-3 font-semibold text-right w-32`}>Amount</th>
+                  <th className={`${isSuperCompact ? 'py-1' : 'py-2'} px-3 font-semibold w-12 border-r border-green-700 uppercase`}>S.No</th>
+                  <th className={`${isSuperCompact ? 'py-1' : 'py-2'} px-3 font-semibold border-r border-green-700 uppercase`}>Description</th>
+                  <th className={`${isSuperCompact ? 'py-1' : 'py-2'} px-3 font-semibold text-center w-16 border-r border-green-700 uppercase`}>Qty</th>
+                  <th className={`${isSuperCompact ? 'py-1' : 'py-2'} px-3 font-semibold text-right w-24 border-r border-green-700 uppercase`}>Rate</th>
+                  {showTaxColumns && <th className={`${isSuperCompact ? 'py-1' : 'py-2'} px-3 font-semibold text-right w-20 border-r border-green-700 uppercase`}>Tax</th>}
+                  <th className={`${isSuperCompact ? 'py-1' : 'py-2'} px-3 font-semibold text-right w-32 uppercase`}>Amount</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {normalizedItems.map((item, idx) => {
-                  const itemTax = isGST ? (((Number(item.sgst) || 0) + (Number(item.cgst) || 0) + (Number(item.cess) || 0)) / 100) * item.itemAmt : 0;
+                  const itemTax = showTaxColumns ? (((Number(item.sgst) || 0) + (Number(item.cgst) || 0) + (Number(item.cess) || 0)) / 100) * item.itemAmt : 0;
                   return (
                     <tr key={item.id} className="text-gray-800 border-b border-gray-100 last:border-0 grow">
-                      <td className={`${isCompact ? 'py-1' : 'py-2'} px-3 border-r border-gray-200`}>{idx + 1}</td>
-                      <td className={`${isCompact ? 'py-1' : 'py-2'} px-3 border-r border-gray-200 font-medium whitespace-pre-wrap`}>{item.description}</td>
-                      <td className={`${isCompact ? 'py-1' : 'py-2'} px-3 border-r border-gray-200 text-center`}>{item.q}</td>
-                      <td className={`${isCompact ? 'py-1' : 'py-2'} px-3 border-r border-gray-200 text-right`}>₹{item.r.toFixed(2)}</td>
-                      {isGST && <td className={`${isCompact ? 'py-1' : 'py-2'} px-3 border-r border-gray-200 text-right text-gray-500 text-[10px]`}>₹{itemTax.toFixed(2)}<br />({Number(item.sgst) + Number(item.cgst) + Number(item.cess)}%)</td>}
-                      <td className={`${isCompact ? 'py-1' : 'py-2'} px-3 font-bold text-right`}>₹{item.itemAmt.toFixed(2)}</td>
+                      <td className={`${isSuperCompact ? 'py-0.5' : 'py-1.5'} px-3 border-r border-gray-200`}>{idx + 1}</td>
+                      <td className={`${isSuperCompact ? 'py-0.5' : 'py-1.5'} px-3 border-r border-gray-200 font-medium whitespace-pre-wrap leading-tight`}>{item.description}</td>
+                      <td className={`${isSuperCompact ? 'py-0.5' : 'py-1.5'} px-3 border-r border-gray-200 text-center`}>{item.q}</td>
+                      <td className={`${isSuperCompact ? 'py-0.5' : 'py-1.5'} px-3 border-r border-gray-200 text-right`}>₹{item.r.toFixed(2)}</td>
+                      {showTaxColumns && <td className={`${isSuperCompact ? 'py-0.5' : 'py-1.5'} px-3 border-r border-gray-200 text-right text-gray-500 ${isSuperCompact ? 'text-[8px]' : 'text-[10px]'} leading-tight`}>₹{itemTax.toFixed(2)}<br />({Number(item.sgst) + Number(item.cgst) + Number(item.cess)}%)</td>}
+                      <td className={`${isSuperCompact ? 'py-0.5' : 'py-1.5'} px-3 font-bold text-right`}>₹{item.itemAmt.toFixed(2)}</td>
                     </tr>
                   );
                 })}
@@ -181,32 +192,57 @@ export default function InvoicePreview({ state }) {
             </table>
           </div>
 
-          {/* Calculations Section */}
-          <div className="flex justify-end items-start mt-8 pt-2">
+          {/* Bottom Info Section (Payment + Calculations) */}
+          <div className={`flex justify-between items-start ${isExtremeCompact ? 'mt-1' : 'mt-4'} pt-1 page-break-inside-avoid relative z-10`}>
+            
+            {/* Payment Details (Left) */}
+            {companyDetails.paymentToggle && (companyDetails.bankName || companyDetails.accountNo) && (
+              <div className="w-1/2 pr-4">
+                <div className={`${isSuperCompact ? 'p-2 space-y-0.5' : 'p-3 space-y-1'} bg-gray-50/50 rounded-lg border border-gray-100 shadow-sm inline-block min-w-[200px]`}>
+                  <h4 className={`${isSuperCompact ? 'text-[8px]' : 'text-[10px]'} font-bold text-gray-400 uppercase tracking-widest`}>Payment Details</h4>
+                  {companyDetails.bankName && (
+                    <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
+                      <span className="font-semibold">Bank:</span> {companyDetails.bankName}
+                    </div>
+                  )}
+                  {companyDetails.accountNo && (
+                    <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
+                      <span className="font-semibold">A/C No:</span> <span className="font-mono">{companyDetails.accountNo}</span>
+                    </div>
+                  )}
+                  {companyDetails.ifscCode && (
+                    <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
+                      <span className="font-semibold">IFSC:</span> <span className="font-mono uppercase">{companyDetails.ifscCode}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
-            <div className="w-1/2 md:w-1/3 ml-auto">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2 border border-gray-200 shadow-sm">
-                <div className="flex justify-between text-sm py-1">
+            {/* Calculations Section (Right) */}
+            <div className={`${isSuperCompact ? 'w-1/3' : 'w-1/3'} ml-auto`}>
+              <div className={`${isSuperCompact ? 'p-2 space-y-0.5' : 'p-4 space-y-2'} bg-gray-50 rounded-lg border border-gray-200 shadow-sm`}>
+                <div className={`flex justify-between ${isSuperCompact ? 'text-[10px]' : 'text-sm'} py-0.5`}>
                   <span className="text-gray-600 font-medium">Subtotal:</span>
                   <span className="text-gray-900 font-semibold">₹{subtotal.toFixed(2)}</span>
                 </div>
 
-                {isGST && (
+                {showTaxColumns && (
                   <>
-                    {totalSGST > 0 && (
-                      <div className="flex justify-between text-sm py-1">
+                    {(totalSGST > 0) && (
+                      <div className={`flex justify-between ${isSuperCompact ? 'text-[10px]' : 'text-sm'} py-0.5`}>
                         <span className="text-gray-600">SGST:</span>
                         <span className="text-gray-800">₹{totalSGST.toFixed(2)}</span>
                       </div>
                     )}
-                    {totalCGST > 0 && (
-                      <div className="flex justify-between text-sm py-1">
+                    {(totalCGST > 0) && (
+                      <div className={`flex justify-between ${isSuperCompact ? 'text-[10px]' : 'text-sm'} py-0.5`}>
                         <span className="text-gray-600">CGST:</span>
                         <span className="text-gray-800">₹{totalCGST.toFixed(2)}</span>
                       </div>
                     )}
-                    {totalCess > 0 && (
-                      <div className="flex justify-between text-sm py-1">
+                    {(totalCess > 0) && (
+                      <div className={`flex justify-between ${isSuperCompact ? 'text-[10px]' : 'text-sm'} py-0.5`}>
                         <span className="text-gray-600">Cess:</span>
                         <span className="text-gray-800">₹{totalCess.toFixed(2)}</span>
                       </div>
@@ -214,26 +250,23 @@ export default function InvoicePreview({ state }) {
                   </>
                 )}
 
-                <div className="border-t border-gray-300 my-2 pt-2 flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-800">Total:</span>
-                  <span className="text-xl font-bold text-primary">₹{grandTotal.toFixed(2)}</span>
+                <div className={`border-t border-gray-300 ${isSuperCompact ? 'my-1 pt-1' : 'my-2 pt-2'} flex justify-between items-center`}>
+                  <span className={`${isSuperCompact ? 'text-sm' : 'text-lg'} font-bold text-gray-800`}>Total:</span>
+                  <span className={`${isSuperCompact ? 'text-base' : 'text-xl'} font-bold text-primary`}>₹{grandTotal.toFixed(2)}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Dynamic Spacer to push footer to bottom */}
-          <div className="flex-grow min-h-[10px]"></div>
-
-          {/* Footer / Signature (Flow-based but pushed by spacer) */}
-          <div className="mt-4 pt-2 border-t border-gray-200 grid grid-cols-2 items-end z-10" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-            <div className="text-xs text-gray-400">
+          {/* Footer / Signature - Fixed to bottom of Page 1 */}
+          <div className="absolute bottom-[10mm] left-[15mm] right-[15mm] border-t border-gray-200 grid grid-cols-2 items-end z-10" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+            <div className={`${isSuperCompact ? 'text-[9px]' : 'text-xs'} text-gray-400`}>
               Thank you for your business.
-              {(notes || terms) && <div className="mt-1 font-semibold">See next page for Notes & Terms</div>}
+              {(notes || terms || (isQuotation && quotationNote)) && <div className="mt-1 font-semibold text-primary">Notes & Terms are on the next page →</div>}
             </div>
             <div className="text-right">
-              <div className="mb-4"></div>
-              <div className="border-t border-gray-800 inline-block pt-2 w-48 text-center text-sm font-bold text-gray-800">
+              <div className={`${isSuperCompact ? 'mb-2' : 'mb-3'}`}></div>
+              <div className={`border-t border-gray-800 inline-block ${isSuperCompact ? 'pt-1 w-32 text-xs' : 'pt-2 w-48 text-sm'} font-bold text-gray-800 text-center`}>
                 Authorized Signature
               </div>
             </div>
@@ -242,12 +275,12 @@ export default function InvoicePreview({ state }) {
         </div>
       </div>
 
-      {/* PAGE 2: Notes & Terms (Only rendered if they have content) */}
-      {(notes || terms) && (
-        <div className="bg-white mx-auto relative print-page flex flex-col shadow-lg print:shadow-none" style={{ width: '210mm', height: '296mm', padding: '10mm', paddingBottom: '20mm'}}>
+      {/* PAGE 2: Notes & Terms (Explicitly on its own page for PDF) */}
+      {(notes || terms || (isQuotation && quotationNote)) && (
+        <div className="bg-white mx-auto relative print-page flex flex-col shadow-lg print:shadow-none  print:mt-0 page-break-before-always" style={{ width: '210mm', minHeight: '296mm', padding: '15mm', paddingBottom: '20mm' }}>
 
           {/* Decorative Top Border */}
-          <div className="absolute top-0 left-0 right-0 h-3 bg-primary" />
+          <div className="absolute top-0 left-0 right-0 h-2 bg-primary" />
           <div className="absolute top-0 bottom-0 left-0 w-2 bg-primary" />
           <div className="absolute top-0 bottom-0 right-0 w-2 bg-primary" />
           <div className="absolute bottom-0 left-0 right-0 h-4 bg-primary" />
@@ -280,12 +313,23 @@ export default function InvoicePreview({ state }) {
                   <div className="text-sm text-black-700 whitespace-pre-wrap leading-relaxed bg-gray-50 p-6 rounded-lg border border-gray-100">{terms}</div>
                 </div>
               )}
+
+              {/* Quotation Note — only for Quotation type */}
+              {isQuotation && quotationNote && (
+                <div>
+                  <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span className="inline-block w-1.5 h-4 bg-primary rounded-full"></span>
+                    Quotation Note
+                  </h3>
+                  <div className="text-base text-gray-800 whitespace-pre-wrap leading-relaxed bg-green-50 p-6 rounded-lg border border-green-200">{quotationNote}</div>
+                </div>
+              )}
             </div>
 
             {/* Minor Footer for reference */}
             <div className="absolute bottom-12 left-12 right-12 border-t border-gray-200 pt-4 flex justify-between text-xs text-gray-400">
               <span>{companyDetails.companyName}</span>
-              <span>Invoice: {invoiceDetails.invoiceNo || '-'}</span>
+              <span>{isQuotation ? 'Quotation' : 'Invoice'}: {invoiceDetails.invoiceNo || '-'}</span>
             </div>
           </div>
         </div>

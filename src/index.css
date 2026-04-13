@@ -9,3 +9,41 @@
     @apply font-sans bg-gray-50 text-gray-900;
   }
 }
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ── Preview container: clips overflow so scaled A4 doesn't bleed ── */
+.preview-scale-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  overflow: visible;
+}
+
+/* ── Print: always full A4, no transform ── */
+@media print {
+  .preview-scale-wrapper > div {
+    transform: none !important;
+    transform-origin: unset !important;
+  }
+}
+
+
+.page-break-before-always {
+  page-break-before: always !important;
+  break-before: page !important;
+}
+
+.page-break-inside-avoid {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}

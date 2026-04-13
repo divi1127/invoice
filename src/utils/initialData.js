@@ -10,7 +10,11 @@ export const initialCompanyDetails = {
   city: 'Madurai',
   state: 'Tamil Nadu',
   country: 'India',
-  phone: '96298 72195 - 78679 08377'
+  phone: '96298 72195 - 78679 08377',
+  bankName: '',
+  accountNo: '',
+  ifscCode: '',
+  paymentToggle: false
 };
 
 export const initialClientDetails = {
