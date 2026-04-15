@@ -29,6 +29,7 @@ function App() {
   const [quotationNote, setQuotationNote] = useLocalStorage('quotationNote', '');
   const [mobileTab, setMobileTab] = useState('form'); // 'form' | 'preview'
   const [previewScale, setPreviewScale] = useState(1);
+  const [isAtBottom, setIsAtBottom] = useState(false);
   const previewContainerRef = useRef(null);
   const previewRef = useRef(null);
   const formScrollRef = useRef(null);
@@ -65,6 +66,24 @@ function App() {
     const ro = new ResizeObserver(updateScale);
     if (previewContainerRef.current) ro.observe(previewContainerRef.current);
     return () => ro.disconnect();
+  }, [mobileTab]);
+
+  // Track scroll position to toggle arrow direction
+  useEffect(() => {
+    const handleScroll = () => {
+      const el = formScrollRef.current;
+      if (!el) return;
+      
+      // Determine if we are further down than halfway
+      const isPastHalfway = el.scrollTop > (el.scrollHeight - el.clientHeight) / 2;
+      setIsAtBottom(isPastHalfway);
+    };
+
+    const el = formScrollRef.current;
+    if (el) {
+      el.addEventListener('scroll', handleScroll);
+      return () => el.removeEventListener('scroll', handleScroll);
+    }
   }, [mobileTab]);
 
   const state = {
@@ -225,21 +244,18 @@ function App() {
         </div>
       </main>
 
-      {/* Floating Scroll Buttons */}
-      <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50 print:hidden">
+      {/* Dynamic Floating Scroll Button */}
+      <div className="fixed bottom-6 right-6 z-50 print:hidden">
         <button
-          onClick={scrollToTop}
-          className="p-3 bg-primary text-white rounded-full shadow-lg hover:bg-green-700 focus:outline-none transition-transform hover:scale-105 active:scale-95"
-          title="Scroll to Top"
+          onClick={isAtBottom ? scrollToTop : scrollToBottom}
+          className="p-4 bg-primary text-white rounded-full shadow-2xl hover:bg-green-700 focus:outline-none transition-all duration-300 hover:scale-110 active:scale-90 flex items-center justify-center border-2 border-white/20"
+          title={isAtBottom ? "Scroll to Top" : "Scroll to Bottom"}
         >
-          <ArrowUp size={20} />
-        </button>
-        <button
-          onClick={scrollToBottom}
-          className="p-3 bg-primary text-white rounded-full shadow-lg hover:bg-green-700 focus:outline-none transition-transform hover:scale-105 active:scale-95"
-          title="Scroll to Bottom"
-        >
-          <ArrowDown size={20} />
+          {isAtBottom ? (
+            <ArrowUp size={24} className="animate-bounce-slow" />
+          ) : (
+            <ArrowDown size={24} className="animate-bounce-slow" />
+          )}
         </button>
       </div>
 
