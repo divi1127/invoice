@@ -209,9 +209,9 @@ export default function InvoicePreview({ state }) {
                   <div className={`${isSuperCompact ? 'p-2 space-y-0.5' : 'p-3 space-y-1'} bg-gray-50/50 rounded-lg border border-gray-100 shadow-sm grow min-w-[150px]`}>
                     <h4 className={`${isSuperCompact ? 'text-[8px]' : 'text-[10px]'} font-bold text-gray-400 uppercase tracking-widest`}>Payment Details</h4>
                     
-                    {companyDetails.paymentMethod && (
+                    {companyDetails.paymentMethod && companyDetails.paymentMethod.length > 0 && (
                       <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
-                        <span className="font-semibold">Method:</span> {companyDetails.paymentMethod}
+                        <span className="font-semibold">Methods:</span> {companyDetails.paymentMethod.join(', ')}
                       </div>
                     )}
                     

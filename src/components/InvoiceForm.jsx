@@ -103,6 +103,19 @@ export default function InvoiceForm({ state, setState }) {
     }
   };
 
+  const handlePaymentMethodToggle = (method) => {
+    const currentMethods = Array.isArray(companyDetails.paymentMethod) ? companyDetails.paymentMethod : [];
+    const newMethods = currentMethods.includes(method)
+      ? currentMethods.filter(m => m !== method)
+      : [...currentMethods, method];
+    
+    setCompanyDetails({
+      ...companyDetails,
+      paymentMethod: newMethods
+    });
+  };
+
+
 
   const isGST = invoiceDetails.invoiceType === 'GST';
   const invoiceType = invoiceDetails.invoiceType || 'GST';
@@ -232,24 +245,31 @@ export default function InvoiceForm({ state, setState }) {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Payment Method</label>
-                <select name="paymentMethod" value={companyDetails.paymentMethod || ''} onChange={handleCompanyChange} className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition-all bg-white">
-                  <option value="">Select Method</option>
-                  <option value="PhonePe">PhonePe</option>
-                  <option value="GPay">GPay</option>
-                  <option value="Paytm">Paytm</option>
-                  <option value="NetBanking">NetBanking</option>
-                  <option value="UPI">UPI</option>
-                  <option value="Cash">Cash</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">UPI ID</label>
-                <input type="text" name="upiId" placeholder="UPI ID" value={companyDetails.upiId || ''} onChange={handleCompanyChange} className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition-all" />
+            <div className="mt-3">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Methods</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {['PhonePe', 'GPay', 'Paytm', 'NetBanking', 'UPI', 'Cash'].map((method) => {
+                  const isChecked = Array.isArray(companyDetails.paymentMethod) && companyDetails.paymentMethod.includes(method);
+                  return (
+                    <label key={method} className={`flex items-center space-x-2 p-2 border rounded-md cursor-pointer transition-colors ${isChecked ? 'bg-green-50 border-primary text-primary' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={isChecked}
+                        onChange={() => handlePaymentMethodToggle(method)}
+                        className="rounded text-primary focus:ring-primary h-4 w-4"
+                      />
+                      <span className="text-xs font-medium">{method}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
+
+            <div className="mt-3">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">UPI ID</label>
+              <input type="text" name="upiId" placeholder="UPI ID" value={companyDetails.upiId || ''} onChange={handleCompanyChange} className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition-all" />
+            </div>
+
 
             <div className="mt-3">
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">QR Code Image</label>
