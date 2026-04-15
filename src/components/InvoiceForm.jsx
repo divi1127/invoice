@@ -1,6 +1,7 @@
 import React from 'react';
 import { Plus, Trash2, Upload, GripVertical } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { PaymentIcons } from '../utils/paymentIcons';
 
 export default function InvoiceForm({ state, setState }) {
   const { companyDetails, clientDetails, invoiceDetails, items, notes, terms, quotationNote } = state;
@@ -250,15 +251,19 @@ export default function InvoiceForm({ state, setState }) {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {['PhonePe', 'GPay', 'Paytm', 'NetBanking', 'UPI', 'Cash'].map((method) => {
                   const isChecked = Array.isArray(companyDetails.paymentMethod) && companyDetails.paymentMethod.includes(method);
+                  const Icon = PaymentIcons[method];
                   return (
-                    <label key={method} className={`flex items-center space-x-2 p-2 border rounded-md cursor-pointer transition-colors ${isChecked ? 'bg-green-50 border-primary text-primary' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                    <label key={method} className={`flex items-center space-x-2 p-2 border rounded-md cursor-pointer transition-colors ${isChecked ? 'bg-green-50 border-primary text-primary shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
                       <input 
                         type="checkbox" 
                         checked={isChecked}
                         onChange={() => handlePaymentMethodToggle(method)}
                         className="rounded text-primary focus:ring-primary h-4 w-4"
                       />
-                      <span className="text-xs font-medium">{method}</span>
+                      <div className="flex items-center space-x-1.5 overflow-hidden">
+                        {Icon && <Icon />}
+                        <span className="text-[10px] sm:text-xs font-semibold whitespace-nowrap">{method}</span>
+                      </div>
                     </label>
                   );
                 })}

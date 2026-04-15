@@ -1,5 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
+import { PaymentIcons } from '../utils/paymentIcons';
 
 export default function InvoicePreview({ state }) {
   const { companyDetails, clientDetails, invoiceDetails, items, notes, terms, quotationNote } = state;
@@ -211,7 +212,18 @@ export default function InvoicePreview({ state }) {
                     
                     {companyDetails.paymentMethod && companyDetails.paymentMethod.length > 0 && (
                       <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
-                        <span className="font-semibold">Methods:</span> {companyDetails.paymentMethod.join(', ')}
+                        <div className="font-semibold mb-1">Payment Methods:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {companyDetails.paymentMethod.map(method => {
+                            const Icon = PaymentIcons[method];
+                            return (
+                              <div key={method} className="flex items-center gap-1 bg-white border border-gray-100 px-1.5 py-0.5 rounded shadow-sm">
+                                {Icon && <Icon />}
+                                <span className={isSuperCompact ? 'text-[8px]' : 'text-[10px]'}>{method}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                     
