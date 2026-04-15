@@ -196,26 +196,47 @@ export default function InvoicePreview({ state }) {
           <div className={`flex justify-between items-start ${isExtremeCompact ? 'mt-1' : 'mt-4'} pt-1 page-break-inside-avoid relative z-10`}>
             
             {/* Payment Details (Left) */}
-            {companyDetails.paymentToggle && (companyDetails.bankName || companyDetails.accountNo) && (
-              <div className="w-1/2 pr-4">
-                <div className={`${isSuperCompact ? 'p-2 space-y-0.5' : 'p-3 space-y-1'} bg-gray-50/50 rounded-lg border border-gray-100 shadow-sm inline-block min-w-[200px]`}>
-                  <h4 className={`${isSuperCompact ? 'text-[8px]' : 'text-[10px]'} font-bold text-gray-400 uppercase tracking-widest`}>Payment Details</h4>
-                  {companyDetails.bankName && (
-                    <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
-                      <span className="font-semibold">Bank:</span> {companyDetails.bankName}
-                    </div>
-                  )}
-                  {companyDetails.accountNo && (
-                    <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
-                      <span className="font-semibold">A/C No:</span> <span className="font-mono">{companyDetails.accountNo}</span>
-                    </div>
-                  )}
-                  {companyDetails.ifscCode && (
-                    <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
-                      <span className="font-semibold">IFSC:</span> <span className="font-mono uppercase">{companyDetails.ifscCode}</span>
-                    </div>
-                  )}
-                </div>
+            {companyDetails.paymentToggle && (companyDetails.bankName || companyDetails.accountNo || companyDetails.qrCode || companyDetails.upiId) && (
+              <div className="w-1/2 pr-4 flex gap-4">
+                {companyDetails.qrCode && (
+                  <div className="flex-shrink-0 mt-1">
+                    <img src={companyDetails.qrCode} alt="Scan to Pay" className={`${isSuperCompact ? 'w-16 h-16' : 'w-24 h-24'} object-contain border border-gray-200 rounded p-1`} />
+                    <div className="text-center text-[7px] md:text-[8px] font-bold mt-1 text-gray-500 uppercase tracking-wider">Scan to Pay</div>
+                  </div>
+                )}
+                
+                {(companyDetails.bankName || companyDetails.accountNo || companyDetails.upiId) && (
+                  <div className={`${isSuperCompact ? 'p-2 space-y-0.5' : 'p-3 space-y-1'} bg-gray-50/50 rounded-lg border border-gray-100 shadow-sm grow min-w-[150px]`}>
+                    <h4 className={`${isSuperCompact ? 'text-[8px]' : 'text-[10px]'} font-bold text-gray-400 uppercase tracking-widest`}>Payment Details</h4>
+                    
+                    {companyDetails.paymentMethod && (
+                      <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
+                        <span className="font-semibold">Method:</span> {companyDetails.paymentMethod}
+                      </div>
+                    )}
+                    
+                    {companyDetails.bankName && (
+                      <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
+                        <span className="font-semibold">Bank:</span> {companyDetails.bankName}
+                      </div>
+                    )}
+                    {companyDetails.accountNo && (
+                      <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
+                        <span className="font-semibold">A/C No:</span> <span className="font-mono">{companyDetails.accountNo}</span>
+                      </div>
+                    )}
+                    {companyDetails.ifscCode && (
+                      <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
+                        <span className="font-semibold">IFSC:</span> <span className="font-mono uppercase">{companyDetails.ifscCode}</span>
+                      </div>
+                    )}
+                    {companyDetails.upiId && (
+                      <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800 ${companyDetails.accountNo ? 'mt-1 pt-1 border-t border-gray-200' : ''}`}>
+                        <span className="font-semibold">UPI ID:</span> {companyDetails.upiId}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

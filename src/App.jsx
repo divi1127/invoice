@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Download, Printer, PlusCircle, FileText, Eye } from 'lucide-react';
+import { Download, Printer, PlusCircle, FileText, Eye, ArrowUp, ArrowDown } from 'lucide-react';
 import useLocalStorage from './hooks/useLocalStorage';
 import InvoiceForm from './components/InvoiceForm';
 import InvoicePreview from './components/InvoicePreview';
@@ -31,6 +31,25 @@ function App() {
   const [previewScale, setPreviewScale] = useState(1);
   const previewContainerRef = useRef(null);
   const previewRef = useRef(null);
+  const formScrollRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (formScrollRef.current) {
+      formScrollRef.current.scrollTo({ top: formScrollRef.current.scrollHeight, behavior: 'smooth' });
+    }
+    if (previewContainerRef.current) {
+      previewContainerRef.current.scrollTo({ top: previewContainerRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  };
+
+  const scrollToTop = () => {
+    if (formScrollRef.current) {
+      formScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (previewContainerRef.current) {
+      previewContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   // Dynamically scale A4 preview to fit container width
   useEffect(() => {
@@ -171,7 +190,9 @@ function App() {
       {/* Main Content Area */}
       <main className="flex-1 flex overflow-hidden print:block print:overflow-visible">
         {/* Left Side: Form */}
-        <div className={`${
+        <div 
+          ref={formScrollRef}
+          className={`${
           mobileTab === 'form' ? 'flex' : 'hidden'
         } lg:flex w-full lg:w-1/2 overflow-y-auto p-4 sm:p-6 scrollbar-hide print:hidden border-r border-gray-200 bg-gray-50/50 flex-col`}>
           <InvoiceForm state={state} setState={setState} />
@@ -203,6 +224,25 @@ function App() {
           </div>
         </div>
       </main>
+
+      {/* Floating Scroll Buttons */}
+      <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50 print:hidden">
+        <button
+          onClick={scrollToTop}
+          className="p-3 bg-primary text-white rounded-full shadow-lg hover:bg-green-700 focus:outline-none transition-transform hover:scale-105 active:scale-95"
+          title="Scroll to Top"
+        >
+          <ArrowUp size={20} />
+        </button>
+        <button
+          onClick={scrollToBottom}
+          className="p-3 bg-primary text-white rounded-full shadow-lg hover:bg-green-700 focus:outline-none transition-transform hover:scale-105 active:scale-95"
+          title="Scroll to Bottom"
+        >
+          <ArrowDown size={20} />
+        </button>
+      </div>
+
     </div>
   );
 }

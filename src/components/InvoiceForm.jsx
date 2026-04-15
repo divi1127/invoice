@@ -88,6 +88,22 @@ export default function InvoiceForm({ state, setState }) {
     }
   };
 
+  const handleQrUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 1024 * 1024) {
+        alert("Image must be less than 1MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCompanyDetails({ ...companyDetails, qrCode: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+
   const isGST = invoiceDetails.invoiceType === 'GST';
   const invoiceType = invoiceDetails.invoiceType || 'GST';
   const isQuotation = invoiceType === 'Quotation';
@@ -215,6 +231,47 @@ export default function InvoiceForm({ state, setState }) {
                 <input type="text" name="ifscCode" placeholder="IFSC" value={companyDetails.ifscCode || ''} onChange={handleCompanyChange} className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition-all font-mono uppercase" />
               </div>
             </div>
+            
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Payment Method</label>
+                <select name="paymentMethod" value={companyDetails.paymentMethod || ''} onChange={handleCompanyChange} className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition-all bg-white">
+                  <option value="">Select Method</option>
+                  <option value="PhonePe">PhonePe</option>
+                  <option value="GPay">GPay</option>
+                  <option value="Paytm">Paytm</option>
+                  <option value="NetBanking">NetBanking</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Cash">Cash</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">UPI ID</label>
+                <input type="text" name="upiId" placeholder="UPI ID" value={companyDetails.upiId || ''} onChange={handleCompanyChange} className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition-all" />
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">QR Code Image</label>
+              <div className="flex items-center space-x-3">
+                <label className="cursor-pointer flex items-center space-x-2 text-sm text-primary hover:text-green-700 font-medium py-1.5 px-3 border border-dashed border-primary rounded-md bg-green-50 transition-colors hover:bg-green-100">
+                  <Upload size={16} />
+                  <span>Upload QR</span>
+                  <input type="file" accept="image/*" onChange={handleQrUpload} className="hidden" />
+                </label>
+                {companyDetails.qrCode && (
+                  <span className="text-xs text-green-600 font-medium flex items-center gap-1 bg-green-50 px-2 py-1.5 rounded-md border border-green-200">
+                    QR Uploaded
+                  </span>
+                )}
+                {companyDetails.qrCode && (
+                  <button onClick={() => setCompanyDetails({ ...companyDetails, qrCode: null })} className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors" title="Remove QR">
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+
           </div>
         </section>
 

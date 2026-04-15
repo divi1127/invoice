@@ -14,6 +14,9 @@ export const initialCompanyDetails = {
   bankName: '',
   accountNo: '',
   ifscCode: '',
+  upiId: '',
+  paymentMethod: '',
+  qrCode: null,
   paymentToggle: false
 };
 
