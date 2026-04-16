@@ -100,16 +100,55 @@ function App() {
     
     // Add success toast immediately or after promise
     const promise = new Promise((resolve) => {
+      // Temporarily remove transform and set fixed width for capture
+      const originalTransform = element.style.transform;
+      const originalMarginBottom = element.style.marginBottom;
+      
+      element.style.transform = 'none';
+      element.style.marginBottom = '0';
+      element.style.width = '210mm'; // Ensure exactly A4 width during capture
+      
       const opt = {
         margin:       [0, 0, 0, 0],
         filename:     `Invoice-${invoiceDetails.invoiceNo}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+       html2canvas: {
+  scale: 2,
+  useCORS: true,
+  allowTaint: true,
+  logging: false,
+  letterRendering: true,
+  imageTimeout: 15000,
+  width: 794,
+  windowWidth: 794
+},
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak:    { mode: ['css', 'legacy'] }
       };
       
-      html2pdf().set(opt).from(element).save().then(resolve);
+      // Small delay to ensure images are fully resolved in the DOM
+     setTimeout(() => {
+  const images = element.querySelectorAll('img');
+
+  Promise.all(
+    Array.from(images).map(img => {
+      if (img.complete) return Promise.resolve();
+
+      return new Promise(resolveImage => {
+        img.onload = resolveImage;
+        img.onerror = resolveImage;
+      });
+    })
+  ).then(() => {
+    html2pdf().set(opt).from(element).save().then(() => {
+      // Restore original styles
+      element.style.transform = originalTransform;
+      element.style.marginBottom = originalMarginBottom;
+      element.style.width = '';
+      resolve();
+    });
+  });
+}, 100);
     });
 
     toast.promise(promise, {
@@ -224,18 +263,17 @@ function App() {
             mobileTab === 'preview' ? 'flex' : 'hidden'
           } lg:flex w-full lg:w-1/2 overflow-y-auto bg-gray-200 p-4 sm:p-6 lg:p-8 justify-center print:w-full print:p-0 print:bg-white`}
         >
-          {/* Scale wrapper: A4 scales to fit container, negative margin collapses unused space */}
-          <div className="preview-scale-wrapper">
+          <div className="preview-scale-wrapper w-full flex justify-center items-start overflow-visible">
             <div
               ref={previewRef}
-              className="bg-white print:!transform-none"
+              className="bg-white print:!transform-none shadow-2xl origin-top"
               style={{
                 transform: previewScale < 1 ? `scale(${previewScale})` : undefined,
-                transformOrigin: 'top center',
                 // Pull subsequent content up to eliminate blank space left by transform
                 marginBottom: previewScale < 1
                   ? `${-(1 - previewScale) * (previewRef.current?.offsetHeight ?? 1122)}px`
                   : undefined,
+                width: '210mm', // Consistent width
               }}
             >
               <InvoicePreview state={state} />

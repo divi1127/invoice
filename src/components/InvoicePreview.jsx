@@ -49,7 +49,7 @@ export default function InvoicePreview({ state }) {
     <div className="flex flex-col relative print:block w-full">
 
       {/* PAGE 1: Invoice Details & Items */}
-      <div className="bg-white mx-auto relative print-page flex flex-col shadow-lg print:shadow-none print:mb-0" style={{ width: '210mm', height: '296mm', padding: '8mm 15mm 25mm 15mm' }}>
+      <div className="bg-white relative print-page flex flex-col shadow-lg print:shadow-none print:mb-0 overflow-hidden" style={{ width: '210mm', height: '296mm', padding: '15mm' }}>
 
         {/* Decorative Top Wave */}
         <div className="absolute top-0 left-0 right-0 w-full overflow-hidden leading-none z-0">
@@ -59,7 +59,7 @@ export default function InvoicePreview({ state }) {
         </div>
         <div className="absolute top-0 bottom-0 left-0 w-2 bg-primary" />
         <div className="absolute top-0 bottom-0 right-0 w-2 bg-primary" />
-        <div className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
+        <div className="absolute bottom-0 left-0 right-0 h-4 bg-primary" />
 
         {/* Watermark Logo */}
         {companyDetails.logo && (
@@ -81,7 +81,7 @@ export default function InvoicePreview({ state }) {
                 <img
                   src={companyDetails.logo}
                   alt="Company Logo"
-                  className={`${isExtremeCompact ? 'h-8' : isSuperCompact ? 'h-10' : 'h-16'} object-contain mb-1 -ml-2`}
+                  className={`${isExtremeCompact ? 'h-10' : isSuperCompact ? 'h-12' : 'h-16'} object-contain mb-2 -ml-2`}
                 />
               ) : (
                 <div className={`${isSuperCompact ? 'text-lg' : isCompact ? 'text-xl' : 'text-2xl'} font-extrabold text-primary mb-1 tracking-tighter`}>
@@ -211,15 +211,15 @@ export default function InvoicePreview({ state }) {
                     <h4 className={`${isSuperCompact ? 'text-[8px]' : 'text-[10px]'} font-bold text-gray-400 uppercase tracking-widest`}>Payment Details</h4>
                     
                     {companyDetails.paymentMethod && companyDetails.paymentMethod.length > 0 && (
-                      <div className={`${isSuperCompact ? 'text-[10px]' : 'text-xs'} text-gray-800`}>
-                        <div className="font-semibold mb-1">Payment Methods:</div>
-                        <div className="flex flex-wrap gap-2">
+                      <div className={`${isSuperCompact ? 'text-[9px]' : 'text-[11px]'} text-gray-800`}>
+                        <div className="font-bold mb-1.5 text-gray-400 uppercase tracking-tighter text-[9px]">Methods:</div>
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
                           {companyDetails.paymentMethod.map(method => {
                             const Icon = PaymentIcons[method];
                             return (
-                              <div key={method} className="flex items-center gap-1 bg-white border border-gray-100 px-1.5 py-0.5 rounded shadow-sm">
-                                {Icon && <Icon />}
-                                <span className={isSuperCompact ? 'text-[8px]' : 'text-[10px]'}>{method}</span>
+                              <div key={method} className="flex items-center gap-1.5 bg-white border border-gray-100 px-2 py-1 rounded shadow-sm">
+                                <div className="shrink-0">{Icon && <Icon />}</div>
+                                <span className={isSuperCompact ? 'text-[8px]' : 'text-[9px] font-medium'}>{method}</span>
                               </div>
                             );
                           })}
@@ -310,10 +310,10 @@ export default function InvoicePreview({ state }) {
 
       {/* PAGE 2: Notes & Terms (Explicitly on its own page for PDF) */}
       {(notes || terms || (isQuotation && quotationNote)) && (
-        <div className="bg-white mx-auto relative print-page flex flex-col shadow-lg print:shadow-none  print:mt-0 page-break-before-always" style={{ width: '210mm', minHeight: '296mm', padding: '15mm', paddingBottom: '20mm' }}>
+        <div className="bg-white relative print-page flex flex-col shadow-lg print:shadow-none print:mt-0 page-break-before-always overflow-hidden" style={{ width: '210mm', height: '296mm', padding: '15mm' }}>
 
           {/* Decorative Top Border */}
-          <div className="absolute top-0 left-0 right-0 h-2 bg-primary" />
+          <div className="absolute top-0 left-0 right-0 h-4 bg-primary" />
           <div className="absolute top-0 bottom-0 left-0 w-2 bg-primary" />
           <div className="absolute top-0 bottom-0 right-0 w-2 bg-primary" />
           <div className="absolute bottom-0 left-0 right-0 h-4 bg-primary" />

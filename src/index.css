@@ -29,11 +29,20 @@
   overflow: visible;
 }
 
-/* ── Print: always full A4, no transform ── */
+/* ── Print: Always high quality A4 ── */
 @media print {
+  body {
+    background: white;
+  }
+  .preview-scale-wrapper {
+    display: block;
+    width: 100%;
+  }
   .preview-scale-wrapper > div {
     transform: none !important;
-    transform-origin: unset !important;
+    width: 210mm !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
   }
 }
 
