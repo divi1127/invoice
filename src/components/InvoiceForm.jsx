@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, Trash2, Upload, GripVertical } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { PaymentIcons } from '../utils/paymentIcons';
+import { descriptionOptions } from '../utils/initialData';
 
 export default function InvoiceForm({ state, setState }) {
   const { companyDetails, clientDetails, invoiceDetails, items, notes, terms, quotationNote } = state;
@@ -34,9 +35,22 @@ export default function InvoiceForm({ state, setState }) {
   const handleItemChange = (id, field, value) => {
     setItems(items.map(item => {
       if (item.id === id) {
-        const updatedItem = { ...item, [field]: value };
+        let updatedItem = { ...item, [field]: value };
+        
+        // Handle recurring services logic
+        const isRecurring = updatedItem.description.toLowerCase().includes('post making') || 
+                           updatedItem.description.toLowerCase().includes('video making');
+        
+        if (isRecurring) {
+          if (field === 'months' || field === 'qtyPerMonth' || field === 'description') {
+            const m = Number(field === 'months' ? value : item.months) || 1;
+            const c = Number(field === 'qtyPerMonth' ? value : item.qtyPerMonth) || 1;
+            updatedItem.qty = m * c;
+          }
+        }
+
         // Auto calculate amount intelligently
-        if (field === 'qty' || field === 'rate') {
+        if (field === 'qty' || field === 'rate' || field === 'months' || field === 'qtyPerMonth' || field === 'description') {
           let q = Number(updatedItem.qty) || 0;
           let r = Number(updatedItem.rate) || 0;
           
@@ -64,7 +78,9 @@ export default function InvoiceForm({ state, setState }) {
       sgst: 9,
       cgst: 9,
       cess: 0,
-      amount: 0
+      amount: 0,
+      months: 1,
+      qtyPerMonth: 1
     }]);
   };
 
@@ -367,7 +383,40 @@ export default function InvoiceForm({ state, setState }) {
                     <GripVertical size={16} />
                   </td>
                   <td className="p-2">
-                    <input type="text" placeholder="Description" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} className="w-full bg-transparent border-b border-transparent focus:border-primary focus:ring-0 px-1 py-1" />
+                    <div className="flex flex-col gap-1 min-w-[200px]">
+                      <input 
+                        type="text" 
+                        list="description-options"
+                        placeholder="Description" 
+                        value={item.description} 
+                        onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} 
+                        className="w-full bg-transparent border-b border-gray-200 focus:border-primary focus:ring-0 px-1 py-1" 
+                      />
+                      {(item.description.toLowerCase().includes('post making') || item.description.toLowerCase().includes('video making')) && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1 border border-primary/20 rounded-md bg-green-50/30 px-2 py-0.5">
+                            <label className="text-[10px] font-bold text-primary uppercase">Months</label>
+                            <input 
+                              type="number" 
+                              min="1" 
+                              value={item.months} 
+                              onChange={(e) => handleItemChange(item.id, 'months', e.target.value)} 
+                              className="w-10 bg-transparent border-none focus:ring-0 p-0 text-xs font-semibold text-center"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1 border border-primary/20 rounded-md bg-green-50/30 px-2 py-0.5">
+                            <label className="text-[10px] font-bold text-primary uppercase">Count/Mo</label>
+                            <input 
+                              type="number" 
+                              min="1" 
+                              value={item.qtyPerMonth} 
+                              onChange={(e) => handleItemChange(item.id, 'qtyPerMonth', e.target.value)} 
+                              className="w-10 bg-transparent border-none focus:ring-0 p-0 text-xs font-semibold text-center"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="p-2">
                     <input type="number" min="1" value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', e.target.value)} className="w-full bg-transparent border-b border-transparent focus:border-primary focus:ring-0 px-1 py-1 text-center" />
@@ -446,6 +495,13 @@ export default function InvoiceForm({ state, setState }) {
           />
         </section>
       )}
+
+      {/* Dropdown Options Datalist */}
+      <datalist id="description-options">
+        {descriptionOptions.map(option => (
+          <option key={option} value={option} />
+        ))}
+      </datalist>
 
     </div>
   );

@@ -47,6 +47,15 @@ export const defaultTerms = `1. 50% advance payment is required to start the pro
 7. Basic support is included for a limited period after delivery.
 8. Final files and website access will be provided after full payment.`;
 
+export const descriptionOptions = [
+  'Website development',
+  'Tools',
+  'Domi',
+  'Host',
+  'Post making',
+  'Video Making'
+];
+
 export const initialItem = {
   id: '1',
   description: '',
@@ -56,5 +65,7 @@ export const initialItem = {
   sgst: 9,
   cgst: 9,
   cess: 0,
-  amount: 0
+  amount: 0,
+  months: 1,
+  qtyPerMonth: 1
 };
